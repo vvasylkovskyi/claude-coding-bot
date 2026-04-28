@@ -8,7 +8,7 @@
     bot_home: "/home/{{ ansible_user }}/my-claude-code"
     claude_home: "/home/{{ ansible_user }}/.claude"
     feature_docs_dir: "{{ bot_home }}/context/feature-docs"
-    repo_dir: "{{ bot_home }}/repo"
+    repo_dir: "{{ bot_home }}/iac-toolbox-cli"
     env_file: "{{ bot_home }}/.claude-env"
     service_name: claude-coding-bot
 

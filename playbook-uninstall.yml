@@ -1,14 +1,15 @@
 ---
-- name: Claude Code PR Bot Uninstall
+- name: Claude Coding Bot Uninstall
   hosts: raspberry_pi
   become: true
 
   vars:
-    bot_user: pi
-    bot_home: "/home/vvasylkovskyi/my-claude-code"
-    repo_dir: "{{ bot_home }}/repo"
+    bot_user: "{{ ansible_user }}"
+    bot_home: "/home/{{ ansible_user }}/my-claude-code"
+    claude_home: "/home/{{ ansible_user }}/.claude"
+    repo_dir: "{{ bot_home }}/iac-toolbox-cli"
     env_file: "{{ bot_home }}/.claude-env"
-    service_name: claude-pr-bot
+    service_name: claude-coding-bot
 
   tasks:
     - name: Stop and disable service
@@ -31,7 +32,7 @@
 
     - name: Remove Claude onboarding config
       ansible.builtin.file:
-        path: "{{ bot_home }}/.claude.json"
+        path: "{{ claude_home }}/../.claude.json"
         state: absent
 
     - name: Remove scripts directory
@@ -39,10 +40,21 @@
         path: "{{ bot_home }}/scripts"
         state: absent
 
-    - name: Remove deployed .claude directory from repo
+    - name: Remove global agents
       ansible.builtin.file:
-        path: "{{ repo_dir }}/.claude"
+        path: "{{ claude_home }}/agents/{{ item }}"
         state: absent
+      loop:
+        - feature-writer.md
+        - feature-reviewer.md
+
+    - name: Remove global skills
+      ansible.builtin.file:
+        path: "{{ claude_home }}/skills/{{ item }}"
+        state: absent
+      loop:
+        - implementation-orchestrator
+        - init
 
     - name: Remove CLAUDE.md from repo
       ansible.builtin.file:
