@@ -6,6 +6,7 @@
   vars:
     bot_user: vvasylkovskyi
     bot_home: "/home/vvasylkovskyi/my-claude-code"
+    claude_home: "/home/vvasylkovskyi/.claude"
     feature_docs_dir: "{{ bot_home }}/context/feature-docs"
     repo_dir: "{{ bot_home }}/repo"
     env_file: "{{ bot_home }}/.claude-env"
@@ -40,10 +41,10 @@
       loop:
         - "{{ feature_docs_dir }}"
         - "{{ repo_dir }}"
-        - "{{ repo_dir }}/.claude/agents"
-        - "{{ repo_dir }}/.claude/skills/orchestrator"
-        - "{{ repo_dir }}/.claude/skills/init"
         - "{{ bot_home }}/scripts"
+        - "{{ claude_home }}/agents"
+        - "{{ claude_home }}/skills/orchestrator"
+        - "{{ claude_home }}/skills/init"
 
     - name: Write Claude env file
       ansible.builtin.copy:
@@ -55,7 +56,7 @@
 
     - name: Write Claude onboarding config
       ansible.builtin.copy:
-        dest: "{{ bot_home }}/.claude.json"
+        dest: "{{ claude_home }}/../.claude.json"
         owner: "{{ bot_user }}"
         mode: "0600"
         content: |
@@ -64,7 +65,7 @@
     - name: Deploy agents
       ansible.builtin.copy:
         src: "agents/{{ item }}"
-        dest: "{{ repo_dir }}/.claude/agents/{{ item }}"
+        dest: "{{ claude_home }}/agents/{{ item }}"
         owner: "{{ bot_user }}"
         mode: "0644"
       loop:
@@ -74,14 +75,14 @@
     - name: Deploy orchestrator skill
       ansible.builtin.copy:
         src: skills/orchestrator/SKILL.md
-        dest: "{{ repo_dir }}/.claude/skills/orchestrator/SKILL.md"
+        dest: "{{ claude_home }}/skills/orchestrator/SKILL.md"
         owner: "{{ bot_user }}"
         mode: "0644"
 
     - name: Deploy init skill
       ansible.builtin.copy:
         src: skills/init/SKILL.md
-        dest: "{{ repo_dir }}/.claude/skills/init/SKILL.md"
+        dest: "{{ claude_home }}/skills/init/SKILL.md"
         owner: "{{ bot_user }}"
         mode: "0644"
 
