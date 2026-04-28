@@ -19,18 +19,28 @@
         state: present
         update_cache: true
 
+    - name: Find claude binary location
+      ansible.builtin.shell:
+        cmd: find /usr/local/bin /home/{{ bot_user }}/.local/bin /home/{{ bot_user }}/.npm-global/bin -name claude 2>/dev/null | head -1
+        executable: /bin/bash
+      become: true
+      become_user: "{{ bot_user }}"
+      register: claude_bin
+      changed_when: false
+
     - name: Download Claude Code install script
       ansible.builtin.get_url:
         url: https://claude.ai/install.sh
         dest: /tmp/claude-install.sh
         mode: "0755"
+      when: claude_bin.stdout == ""
 
     - name: Install Claude Code
       ansible.builtin.command:
         cmd: bash /tmp/claude-install.sh
-        creates: /usr/local/bin/claude
       become: true
       become_user: "{{ bot_user }}"
+      when: claude_bin.stdout == ""
 
     - name: Create required directories
       ansible.builtin.file:
@@ -108,9 +118,18 @@
         state: started
         daemon_reload: true
 
+    - name: Find claude binary location
+      ansible.builtin.shell:
+        cmd: find /usr/local/bin /home/{{ bot_user }}/.local/bin /home/{{ bot_user }}/.npm-global/bin -name claude 2>/dev/null | head -1
+        executable: /bin/bash
+      become: true
+      become_user: "{{ bot_user }}"
+      register: claude_bin
+      changed_when: false
+
     - name: Smoke test — verify Claude Code is responsive
       ansible.builtin.shell:
-        cmd: claude --dangerously-skip-permissions -p "Reply with OK"
+        cmd: "{{ claude_bin.stdout }} --dangerously-skip-permissions -p 'Reply with OK'"
         executable: /bin/bash
       become: true
       become_user: "{{ bot_user }}"
@@ -118,11 +137,11 @@
         CLAUDE_CODE_OAUTH_TOKEN: "{{ claude_token }}"
       register: smoke_result
       changed_when: false
-      failed_when: smoke_result.rc != 0
+      failed_when: smoke_result.rc != 0 or claude_bin.stdout == ""
 
     - name: Run init skill to bootstrap CLAUDE.md
       ansible.builtin.shell:
-        cmd: claude --dangerously-skip-permissions -p "/init Bootstrap this repository"
+        cmd: "{{ claude_bin.stdout }} --dangerously-skip-permissions -p '/init Bootstrap this repository'"
         chdir: "{{ repo_dir }}"
         executable: /bin/bash
       become: true
@@ -130,7 +149,7 @@
       environment:
         CLAUDE_CODE_OAUTH_TOKEN: "{{ claude_token }}"
       changed_when: true
-      when: smoke_result.rc == 0
+      when: smoke_result.rc == 0 or claude_bin.stdout != ""
 
   handlers:
     - name: Restart service
