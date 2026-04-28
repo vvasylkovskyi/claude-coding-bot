@@ -43,7 +43,7 @@
         - "{{ repo_dir }}"
         - "{{ bot_home }}/scripts"
         - "{{ claude_home }}/agents"
-        - "{{ claude_home }}/skills/orchestrator"
+        - "{{ claude_home }}/skills/implementation-orchestrator"
         - "{{ claude_home }}/skills/init"
 
     - name: Write Claude env file
