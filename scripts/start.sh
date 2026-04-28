@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_DIR="${REPO_DIR:-/home/vvasylkovskyi/my-claude-code/repo}"
+REPO_DIR="${REPO_DIR:-/home/vvasylkovskyi/my-claude-code/iac-toolbox-cli}"
 FEATURE_DOCS_DIR="${FEATURE_DOCS_DIR:-/home/vvasylkovskyi/my-claude-code/context/feature-docs}"
 
 # ── Bootstrap: run init skill if CLAUDE.md is missing ────────────────────────
@@ -19,6 +19,6 @@ cd "$REPO_DIR"
 inotifywait -m "$FEATURE_DOCS_DIR" -e create | while read -r path _event file; do
   echo "[pipeline] Detected: $file — starting pipeline..."
   claude --dangerously-skip-permissions -p \
-    "/orchestrator Process this feature doc: @${path}${file}"
+    "/implementation-orchestrator Process this feature doc: @${path}${file}"
   echo "[pipeline] Done: $file"
 done
