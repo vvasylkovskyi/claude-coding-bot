@@ -3,13 +3,15 @@
   hosts: raspberry_pi
   become: true
 
+  vars_files:
+    - vars/common.yml
+
   vars:
     bot_user: "{{ ansible_user }}"
     bot_home: "/home/{{ ansible_user }}/my-claude-code"
     claude_home: "/home/{{ ansible_user }}/.claude"
-    repo_dir: "{{ bot_home }}/iac-toolbox-cli"
+    repo_dir: "{{ bot_home }}/{{ service_name }}"
     env_file: "{{ bot_home }}/.claude-env"
-    service_name: claude-coding-bot
 
   tasks:
     - name: Stop and disable service

@@ -3,14 +3,16 @@
   hosts: raspberry_pi
   become: true
 
+  vars_files:
+    - vars/common.yml
+
   vars:
     bot_user: "{{ ansible_user }}"
     bot_home: "/home/{{ ansible_user }}/my-claude-code"
     claude_home: "/home/{{ ansible_user }}/.claude"
     feature_docs_dir: "{{ bot_home }}/context/feature-docs"
-    repo_dir: "{{ bot_home }}/iac-toolbox-cli"
+    repo_dir: "{{ bot_home }}/{{ service_name }}"
     env_file: "{{ bot_home }}/.claude-env"
-    service_name: claude-coding-bot
 
   tasks:
     - name: Install inotify-tools
@@ -96,7 +98,7 @@
 
     - name: Deploy systemd service from template
       ansible.builtin.template:
-        src: templates/claude-coding-bot.service.j2
+        src: "templates/{{ service_name }}.service.j2"
         dest: "/etc/systemd/system/{{ service_name }}.service"
         mode: "0644"
       notify: Restart service

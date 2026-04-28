@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://github.com/vvasylkovskyi/claude-coding-bot.git"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/git/claude-coding-bot}"
+REPO_NAME="iac-toolbox-cli"
+REPO_URL="https://github.com/vvasylkovskyi/${REPO_NAME}.git"
+INSTALL_DIR="${INSTALL_DIR:-$HOME/git/${REPO_NAME}}"
 
 # ── Check dependencies ────────────────────────────────────────────────────────
 for cmd in git ansible-playbook; do
