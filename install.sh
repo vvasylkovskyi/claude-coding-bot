@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/vvasylkovskyi/claude-coding-bot.git"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/claude-coding-bot}"
+INSTALL_DIR="${INSTALL_DIR:-$HOME/git/claude-coding-bot}"
 
 # ── Check dependencies ────────────────────────────────────────────────────────
 for cmd in git ansible-playbook; do

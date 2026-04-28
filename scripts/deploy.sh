@@ -14,7 +14,7 @@ fi
 PI_HOST="${PI_HOST:-raspberrypi.local}"
 FEATURE_DOCS_DIR="${FEATURE_DOCS_DIR:-}"
 
-sed -i "s/raspberrypi.local/$PI_HOST/" "$REPO_DIR/inventory.ini"
+perl -i -pe "s/raspberrypi.local/$PI_HOST/g" "$REPO_DIR/inventory.ini"
 
 # ── Build extra-vars ──────────────────────────────────────────────────────────
 EXTRA_VARS="claude_token=$CLAUDE_TOKEN"

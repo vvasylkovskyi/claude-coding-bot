@@ -1,15 +1,15 @@
 ---
-- name: Claude Code PR Bot Setup
+- name: Claude Coding Bot Setup
   hosts: raspberry_pi
   become: true
 
   vars:
-    bot_user: pi
+    bot_user: vvasylkovskyi
     bot_home: "/home/vvasylkovskyi/my-claude-code"
     feature_docs_dir: "{{ bot_home }}/context/feature-docs"
     repo_dir: "{{ bot_home }}/repo"
     env_file: "{{ bot_home }}/.claude-env"
-    service_name: claude-pr-bot
+    service_name: claude-coding-bot
 
   tasks:
     - name: Install inotify-tools
