@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_DIR="${INSTALL_DIR:-$HOME/claude-pr-bot}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_NAME=$(grep '^service_name:' "$SCRIPT_DIR/common.yml" | awk '{print $2}')
+INSTALL_DIR="${INSTALL_DIR:-$HOME/git/${REPO_NAME}}"
 
 # ── Check dependencies ────────────────────────────────────────────────────────
 if ! command -v ansible-playbook &>/dev/null; then
