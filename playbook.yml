@@ -4,7 +4,7 @@
   become: true
 
   vars_files:
-    - vars/common.yml
+    - common.yml
 
   vars:
     bot_user: "{{ ansible_user }}"

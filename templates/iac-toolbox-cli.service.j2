@@ -1,6 +1,7 @@
 [Unit]
 Description=Claude Code PR Bot
 After=network.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -12,7 +13,6 @@ Environment=FEATURE_DOCS_DIR={{ feature_docs_dir }}
 ExecStart={{ bot_home }}/scripts/start.sh
 Restart=on-failure
 RestartSec=10
-StartLimitIntervalSec=0
 
 [Install]
 WantedBy=multi-user.target
