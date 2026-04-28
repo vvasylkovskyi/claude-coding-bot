@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_NAME="iac-toolbox-cli"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_NAME=$(grep '^service_name:' "$SCRIPT_DIR/common.yml" | awk '{print $2}')
 REPO_URL="https://github.com/vvasylkovskyi/${REPO_NAME}.git"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/git/${REPO_NAME}}"
 
