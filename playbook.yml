@@ -1,0 +1,139 @@
+---
+- name: Claude Code PR Bot Setup
+  hosts: raspberry_pi
+  become: true
+
+  vars:
+    bot_user: pi
+    bot_home: "/home/vvasylkovskyi/my-claude-code"
+    feature_docs_dir: "{{ bot_home }}/context/feature-docs"
+    repo_dir: "{{ bot_home }}/repo"
+    env_file: "{{ bot_home }}/.claude-env"
+    service_name: claude-pr-bot
+
+  tasks:
+    - name: Install inotify-tools
+      ansible.builtin.apt:
+        name: inotify-tools
+        state: present
+        update_cache: true
+
+    - name: Download Claude Code install script
+      ansible.builtin.get_url:
+        url: https://claude.ai/install.sh
+        dest: /tmp/claude-install.sh
+        mode: "0755"
+
+    - name: Install Claude Code
+      ansible.builtin.command:
+        cmd: bash /tmp/claude-install.sh
+        creates: /usr/local/bin/claude
+      become: true
+      become_user: "{{ bot_user }}"
+
+    - name: Create required directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ bot_user }}"
+        mode: "0755"
+      loop:
+        - "{{ feature_docs_dir }}"
+        - "{{ repo_dir }}"
+        - "{{ repo_dir }}/.claude/agents"
+        - "{{ repo_dir }}/.claude/skills/orchestrator"
+        - "{{ repo_dir }}/.claude/skills/init"
+        - "{{ bot_home }}/scripts"
+
+    - name: Write Claude env file
+      ansible.builtin.copy:
+        dest: "{{ env_file }}"
+        owner: "{{ bot_user }}"
+        mode: "0600"
+        content: |
+          CLAUDE_CODE_OAUTH_TOKEN={{ claude_token }}
+
+    - name: Write Claude onboarding config
+      ansible.builtin.copy:
+        dest: "{{ bot_home }}/.claude.json"
+        owner: "{{ bot_user }}"
+        mode: "0600"
+        content: |
+          { "hasCompletedOnboarding": true }
+
+    - name: Deploy agents
+      ansible.builtin.copy:
+        src: "agents/{{ item }}"
+        dest: "{{ repo_dir }}/.claude/agents/{{ item }}"
+        owner: "{{ bot_user }}"
+        mode: "0644"
+      loop:
+        - writer.md
+        - reviewer.md
+
+    - name: Deploy orchestrator skill
+      ansible.builtin.copy:
+        src: skills/orchestrator/SKILL.md
+        dest: "{{ repo_dir }}/.claude/skills/orchestrator/SKILL.md"
+        owner: "{{ bot_user }}"
+        mode: "0644"
+
+    - name: Deploy init skill
+      ansible.builtin.copy:
+        src: skills/init/SKILL.md
+        dest: "{{ repo_dir }}/.claude/skills/init/SKILL.md"
+        owner: "{{ bot_user }}"
+        mode: "0644"
+
+    - name: Deploy start.sh
+      ansible.builtin.copy:
+        src: scripts/start.sh
+        dest: "{{ bot_home }}/scripts/start.sh"
+        owner: "{{ bot_user }}"
+        mode: "0755"
+      notify: Restart service
+
+    - name: Deploy systemd service from template
+      ansible.builtin.template:
+        src: templates/claude-pr-bot.service.j2
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        mode: "0644"
+      notify: Restart service
+
+    - name: Enable and start service
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Smoke test — verify Claude Code is responsive
+      ansible.builtin.shell:
+        cmd: claude --dangerously-skip-permissions -p "Reply with OK"
+        executable: /bin/bash
+      become: true
+      become_user: "{{ bot_user }}"
+      environment:
+        CLAUDE_CODE_OAUTH_TOKEN: "{{ claude_token }}"
+      register: smoke_result
+      changed_when: false
+      failed_when: smoke_result.rc != 0
+
+    - name: Run init skill to bootstrap CLAUDE.md
+      ansible.builtin.shell:
+        cmd: claude --dangerously-skip-permissions -p "/init Bootstrap this repository"
+        chdir: "{{ repo_dir }}"
+        executable: /bin/bash
+      become: true
+      become_user: "{{ bot_user }}"
+      environment:
+        CLAUDE_CODE_OAUTH_TOKEN: "{{ claude_token }}"
+      changed_when: true
+      when: smoke_result.rc == 0
+
+  handlers:
+    - name: Restart service
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        state: restarted
+        daemon_reload: true

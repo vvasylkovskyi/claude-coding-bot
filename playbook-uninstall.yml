@@ -1,0 +1,55 @@
+---
+- name: Claude Code PR Bot Uninstall
+  hosts: raspberry_pi
+  become: true
+
+  vars:
+    bot_user: pi
+    bot_home: "/home/vvasylkovskyi/my-claude-code"
+    repo_dir: "{{ bot_home }}/repo"
+    env_file: "{{ bot_home }}/.claude-env"
+    service_name: claude-pr-bot
+
+  tasks:
+    - name: Stop and disable service
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Remove systemd unit file
+      ansible.builtin.file:
+        path: "/etc/systemd/system/{{ service_name }}.service"
+        state: absent
+      notify: Reload systemd
+
+    - name: Remove env file
+      ansible.builtin.file:
+        path: "{{ env_file }}"
+        state: absent
+
+    - name: Remove Claude onboarding config
+      ansible.builtin.file:
+        path: "{{ bot_home }}/.claude.json"
+        state: absent
+
+    - name: Remove scripts directory
+      ansible.builtin.file:
+        path: "{{ bot_home }}/scripts"
+        state: absent
+
+    - name: Remove deployed .claude directory from repo
+      ansible.builtin.file:
+        path: "{{ repo_dir }}/.claude"
+        state: absent
+
+    - name: Remove CLAUDE.md from repo
+      ansible.builtin.file:
+        path: "{{ repo_dir }}/CLAUDE.md"
+        state: absent
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
